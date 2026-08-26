@@ -6,6 +6,8 @@ import { Scene } from "./core/Scene";
 import { Raycaster } from "./interaction/Raycaster";
 import { Selection } from "./interaction/Selection";
 import { SolarSystem } from "./simulation/SolarSystem";
+import { SoundSystem } from "./core/Sound";
+import { QuizSystem } from "./ui/Quiz";
 
 export class App {
   private readonly scene = new Scene();
@@ -15,6 +17,8 @@ export class App {
   private readonly solarSystem: SolarSystem;
   private readonly selection = new Selection();
   private readonly raycaster: Raycaster;
+  private readonly sound = new SoundSystem();
+  private readonly quiz = new QuizSystem();
   private isPaused = false;
   private timeSpeed = 1.0;
   private customElapsed = 0;
@@ -73,13 +77,29 @@ export class App {
     const btnReset = document.getElementById("btn-reset") as HTMLButtonElement | null;
     const btnClose = document.getElementById("close-panel") as HTMLButtonElement | null;
     const btnExplore = document.getElementById("btn-explore-details") as HTMLButtonElement | null;
+    const btnSound = document.getElementById("btn-sound") as HTMLButtonElement | null;
+    const btnQuiz = document.getElementById("btn-quiz") as HTMLButtonElement | null;
+
+    btnSound?.addEventListener("click", () => {
+      this.sound.init();
+      const muted = this.sound.toggleMute();
+      btnSound.textContent = muted ? "🔇 مكتوم" : "🔊 الصوت";
+    });
+
+    btnQuiz?.addEventListener("click", () => {
+      this.sound.init();
+      this.sound.playClickSound();
+      this.openQuizModal();
+    });
 
     btnExplore?.addEventListener("click", () => {
+      this.sound.playClickSound();
       const detailedText = document.getElementById("detailed-info-text");
       detailedText?.classList.toggle("hidden");
     });
 
     speedSelect?.addEventListener("change", (e) => {
+      this.sound.playClickSound();
       this.timeSpeed = parseFloat((e.target as HTMLSelectElement).value) || 1.0;
     });
 
@@ -105,6 +125,97 @@ export class App {
     btnClose?.addEventListener("click", () => {
       this.selection.select(null);
     });
+  }
+
+  private openQuizModal(): void {
+    const modal = document.getElementById("quiz-modal");
+    const closeBtn = document.getElementById("close-quiz");
+    const qBox = document.getElementById("quiz-question-box");
+    const rBox = document.getElementById("quiz-result-box");
+    const restartBtn = document.getElementById("btn-restart-quiz");
+
+    modal?.classList.remove("hidden");
+    qBox?.classList.remove("hidden");
+    rBox?.classList.add("hidden");
+
+    this.quiz.reset();
+    this.renderQuestion();
+
+    if (closeBtn) {
+      closeBtn.onclick = () => modal?.classList.add("hidden");
+    }
+    if (restartBtn) {
+      restartBtn.onclick = () => {
+        this.quiz.reset();
+        qBox?.classList.remove("hidden");
+        rBox?.classList.add("hidden");
+        this.renderQuestion();
+      };
+    }
+  }
+
+  private renderQuestion(): void {
+    const qText = document.getElementById("quiz-question-text");
+    const optionsBox = document.getElementById("quiz-options");
+    const feedbackText = document.getElementById("quiz-feedback");
+    const nextBtn = document.getElementById("btn-next-question");
+
+    if (!qText || !optionsBox) return;
+
+    const q = this.quiz.currentQuestion;
+    qText.textContent = `سؤال (${this.quiz.currentScore} نقطة): ${q.question}`;
+    optionsBox.innerHTML = "";
+    feedbackText?.classList.add("hidden");
+    nextBtn?.classList.add("hidden");
+
+    q.options.forEach((opt, idx) => {
+      const btn = document.createElement("button");
+      btn.className = "quiz-opt-btn";
+      btn.textContent = opt;
+      btn.onclick = () => {
+        const isCorrect = this.quiz.submitAnswer(idx);
+        this.sound.playClickSound();
+
+        Array.from(optionsBox.children).forEach((child) => {
+          (child as HTMLButtonElement).disabled = true;
+        });
+
+        if (isCorrect) {
+          btn.classList.add("correct");
+          if (feedbackText) {
+            feedbackText.textContent = `✅ إجابة صحيحة! ${q.explanation}`;
+            feedbackText.style.color = "#4ade80";
+            feedbackText.classList.remove("hidden");
+          }
+        } else {
+          btn.classList.add("wrong");
+          if (feedbackText) {
+            feedbackText.textContent = `❌ إجابة خاطئة. ${q.explanation}`;
+            feedbackText.style.color = "#f87171";
+            feedbackText.classList.remove("hidden");
+          }
+        }
+
+        nextBtn?.classList.remove("hidden");
+      };
+      optionsBox.appendChild(btn);
+    });
+
+    if (nextBtn) {
+      nextBtn.onclick = () => {
+        this.sound.playClickSound();
+        const hasNext = this.quiz.nextQuestion();
+        if (hasNext) {
+          this.renderQuestion();
+        } else {
+          document.getElementById("quiz-question-box")?.classList.add("hidden");
+          const rBox = document.getElementById("quiz-result-box");
+          const finalScore = document.getElementById("quiz-final-score");
+          if (finalScore) finalScore.textContent = `مجموع نقاطك النهائي: ${this.quiz.currentScore} من ${this.quiz.totalQuestions * 10}`;
+          rBox?.classList.remove("hidden");
+        }
+      };
+    }
   }
 
   private onCelestialSelected(id: string | null): void {
