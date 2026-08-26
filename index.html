@@ -4,7 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#02030a" />
-    <title>Space Explorer</title>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' ws: wss:; object-src 'none'; base-uri 'self';" />
+    <title>Interactive Space Explorer - مستكشف الفضاء التفاعلي</title>
   </head>
   <body>
     <div id="app"></div>
@@ -30,6 +31,12 @@
           <option value="neptune">♆ نبتون (Neptune)</option>
         </select>
 
+        <select id="speed-select" aria-label="سرعة المحاكاة" title="سرعة المحاكاة">
+          <option value="0.5">⚡ 0.5x</option>
+          <option value="1" selected>⚡ 1x</option>
+          <option value="2">⚡ 2x</option>
+          <option value="5">⚡ 5x</option>
+        </select>
         <button id="btn-pause" title="إيقاف / استئناف الحركة">⏸️ إيقاف مؤقت</button>
         <button id="btn-reset" title="إعادة ضبط الكاميرا">🎥 إعادة الكاميرا</button>
       </div>

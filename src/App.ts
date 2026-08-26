@@ -15,6 +15,8 @@ export class App {
   private readonly selection = new Selection();
   private readonly raycaster: Raycaster;
   private isPaused = false;
+  private timeSpeed = 1.0;
+  private customElapsed = 0;
 
   constructor(container: HTMLElement) {
     this.renderer = new Renderer(container);
@@ -46,11 +48,10 @@ export class App {
   }
 
   private animate = (): void => {
-    const delta = this.clock.getDelta();
-    const elapsed = this.clock.getElapsedTime();
-
+    const delta = this.clock.getDelta() * this.timeSpeed;
     if (!this.isPaused) {
-      this.solarSystem.update(elapsed, delta);
+      this.customElapsed += delta;
+      this.solarSystem.update(this.customElapsed, delta);
     }
     this.camera.update();
     this.renderer.render(this.scene.instance, this.camera.instance);
@@ -60,9 +61,14 @@ export class App {
 
   private setupUIListeners(): void {
     const selectElem = document.getElementById("celestial-select") as HTMLSelectElement | null;
+    const speedSelect = document.getElementById("speed-select") as HTMLSelectElement | null;
     const btnPause = document.getElementById("btn-pause") as HTMLButtonElement | null;
     const btnReset = document.getElementById("btn-reset") as HTMLButtonElement | null;
     const btnClose = document.getElementById("close-panel") as HTMLButtonElement | null;
+
+    speedSelect?.addEventListener("change", (e) => {
+      this.timeSpeed = parseFloat((e.target as HTMLSelectElement).value) || 1.0;
+    });
 
     selectElem?.addEventListener("change", (e) => {
       const val = (e.target as HTMLSelectElement).value;
@@ -105,7 +111,7 @@ export class App {
     const celestial = this.solarSystem.getById(id);
     if (!celestial) return;
 
-    this.camera.focusOn(celestial.object);
+    this.camera.focusOn(celestial.object, celestial.data.radius);
 
     const title = document.getElementById("info-title");
     const type = document.getElementById("info-type");

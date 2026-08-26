@@ -25,10 +25,14 @@ export class Camera {
     this.controls.target.set(0, 0, 0);
   }
 
-  focusOn(object: THREE.Object3D | null): void {
+  private idealOffset = new THREE.Vector3(0, 5, 12);
+
+  focusOn(object: THREE.Object3D | null, radius = 2): void {
     this.targetObject = object;
     if (object) {
       this.isFocusing = true;
+      const offsetMultiplier = Math.max(radius * 3.5, 6);
+      this.idealOffset.set(0, offsetMultiplier * 0.4, offsetMultiplier);
     }
   }
 
@@ -36,6 +40,7 @@ export class Camera {
     this.targetObject = null;
     this.isFocusing = false;
     this.controls.target.set(0, 0, 0);
+    this.instance.position.set(30, 24, 55);
   }
 
   update(): void {
@@ -44,15 +49,17 @@ export class Camera {
       this.targetObject.getWorldPosition(worldPos);
 
       if (this.isFocusing) {
-        // Smooth transition target and camera position towards target object
         this.controls.target.lerp(worldPos, 0.08);
-        const distance = this.controls.target.distanceTo(worldPos);
-        if (distance < 0.1) {
+        const desiredCamPos = worldPos.clone().add(this.idealOffset);
+        this.instance.position.lerp(desiredCamPos, 0.08);
+
+        if (this.controls.target.distanceTo(worldPos) < 0.2) {
           this.isFocusing = false;
         }
       } else {
-        // Track target object position
+        const delta = worldPos.clone().sub(this.controls.target);
         this.controls.target.copy(worldPos);
+        this.instance.position.add(delta);
       }
     }
     this.controls.update();
