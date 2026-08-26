@@ -145,7 +145,50 @@ canvas {
   font-size: 0.88rem;
   line-height: 1.5;
   color: #cbd5e1;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
+}
+
+.did-you-know {
+  background: rgba(245, 158, 11, 0.15);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  color: #fbbf24;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+
+.did-you-know.hidden,
+.detailed-info.hidden {
+  display: none;
+}
+
+.btn-explore {
+  width: 100%;
+  background: rgba(37, 99, 235, 0.8);
+  color: #fff;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  margin-bottom: 12px;
+  transition: background 0.2s ease;
+}
+
+.btn-explore:hover {
+  background: rgba(29, 78, 216, 0.95);
+}
+
+.detailed-info {
+  font-size: 0.82rem;
+  color: #e2e8f0;
+  line-height: 1.5;
+  background: rgba(30, 41, 59, 0.7);
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 12px;
 }
 
 .stats-grid {

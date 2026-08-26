@@ -29,6 +29,9 @@
           <option value="saturn">♄ زحل (Saturn)</option>
           <option value="uranus">♅ أورانوس (Uranus)</option>
           <option value="neptune">♆ نبتون (Neptune)</option>
+          <option value="moon">🌕 القمر (The Moon)</option>
+          <option value="iss">🛰️ محطة الفضاء الدولية (ISS)</option>
+          <option value="blackhole">🕳️ الثقب الأسود (Black Hole)</option>
         </select>
 
         <select id="speed-select" aria-label="سرعة المحاكاة" title="سرعة المحاكاة">
@@ -49,6 +52,14 @@
         <h2 id="info-title">اسم الجرم</h2>
         <span id="info-type" class="badge">نوع الجرم</span>
         <p id="info-desc" class="description"></p>
+
+        <!-- Did you know & Educational details -->
+        <div id="did-you-know-box" class="did-you-know hidden">
+          💡 <strong>هل تعلم؟</strong> <span id="did-you-know-text"></span>
+        </div>
+
+        <button id="btn-explore-details" class="btn-explore">🔍 استكشف التفاصيل الكاملة</button>
+        <p id="detailed-info-text" class="detailed-info hidden"></p>
 
         <div class="stats-grid">
           <div class="stat-card">
