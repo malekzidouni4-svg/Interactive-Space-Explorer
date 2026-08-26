@@ -1,2 +1,48 @@
-# Interactive-Space-Explorer
-A website for exploring space and learning more about astronomy in a fun and easy-to-understand way. 
+# 🚀 مستكشف الفضاء التفاعلي | Interactive Space Explorer
+
+موقع تفاعلي ثلاثي الأبعاد لاستكشاف النظام الشمسي والتعرف على الأجسام السماوية بطريقة ممتعة وسهلة.
+
+An interactive 3D website for exploring the solar system and learning about astronomy in an engaging and intuitive way.
+
+---
+
+## 🌟 المميزات (Features)
+
+- **محاكاة ثلاثية الأبعاد (3D Solar System):** تجسيد واقعي للشمس والكواكب الثمانية مع الحركات المدارية والدورانية وحلقات زحل وأورانوس.
+- **واجهة مستخدم تفاعلية باللغة العربية:** لوحة معلومات جانبية تعرض تفاصيل كل جرم (المسافة عن الشمس، الكتلة، التكوين، عدد الأقمار).
+- **تحكم سلس بالكاميرا:** إمكانية النقر على أي كوكب أو اختياره من القائمة للتركيز التلقائي وتتبعه بالحركة.
+- **أدوات التحكم في التفاعل:** إمكانية الإيقاف المؤقت/الاستئناف وإعادة ضبط الكاميرا لمظهر شامل.
+- **تصميم عصري متجاوب:** واجهة شفافة وأنيقة تناسب كافة الشاشات مع خلفية نجوم ثلاثية الأبعاد.
+
+---
+
+## 🛠️ التقنيات المستخدمة (Tech Stack)
+
+- **[Three.js](https://threejs.org/):** للمحاكاة والرسومات ثلاثية الأبعاد في المتصفح.
+- **TypeScript:** لكتابة كود برمجي موثوق عالي الجودة.
+- **[Vite](https://vitejs.dev/):** لبناء المشروع وتشغيله بسرعة فائقة.
+- **HTML5 & Modern CSS3:** للتصميم والواجهات التفاعلية.
+
+---
+
+## 🚀 كيفية التشغيل والتطوير (Getting Started)
+
+### 1. تثبيت الحزم (Installation)
+```bash
+npm install
+```
+
+### 2. تشغيل سيرفر التطوير (Development Server)
+```bash
+npm run dev
+```
+
+### 3. بناء المشروع للإنتاج (Production Build)
+```bash
+npm run build
+```
+
+### 4. معاينة البناء (Preview Build)
+```bash
+npm run preview
+```
