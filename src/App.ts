@@ -8,6 +8,8 @@ import { Selection } from "./interaction/Selection";
 import { SolarSystem } from "./simulation/SolarSystem";
 import { SoundSystem } from "./core/Sound";
 import { QuizSystem } from "./ui/Quiz";
+import { Discoveries } from "./ui/Discoveries";
+import { LoadingScreen } from "./ui/LoadingScreen";
 
 export class App {
   private readonly scene = new Scene();
@@ -19,7 +21,10 @@ export class App {
   private readonly raycaster: Raycaster;
   private readonly sound = new SoundSystem();
   private readonly quiz = new QuizSystem();
+  private readonly discoveries = new Discoveries();
+  private readonly loadingScreen = new LoadingScreen();
   private isPaused = false;
+  private isMapMode = false;
   private timeSpeed = 1.0;
   private customElapsed = 0;
 
@@ -37,16 +42,26 @@ export class App {
     const targets = [
       ...this.solarSystem.getPickableObjects(),
       this.scene.blackHole.object,
+      this.scene.comet.object,
     ];
     this.raycaster.setTargets(targets);
 
     this.setupUIListeners();
     this.selection.onSelectionChange((id) => this.onCelestialSelected(id));
 
+    this.discoveries.onUpdate((count) => {
+      const countElem = document.getElementById("discovery-count");
+      if (countElem) countElem.textContent = count.toString();
+    });
+
     window.addEventListener("resize", this.onResize);
   }
 
   start(): void {
+    setTimeout(() => {
+      this.loadingScreen.hide();
+    }, 1200);
+
     requestAnimationFrame(this.animate);
   }
 
@@ -63,6 +78,7 @@ export class App {
       this.solarSystem.update(this.customElapsed, delta);
       this.scene.meteors.update(delta);
       this.scene.blackHole.update(delta);
+      this.scene.comet.update(this.customElapsed);
     }
     this.camera.update();
     this.renderer.render(this.scene.instance, this.camera.instance);
@@ -79,6 +95,20 @@ export class App {
     const btnExplore = document.getElementById("btn-explore-details") as HTMLButtonElement | null;
     const btnSound = document.getElementById("btn-sound") as HTMLButtonElement | null;
     const btnQuiz = document.getElementById("btn-quiz") as HTMLButtonElement | null;
+    const btnMap = document.getElementById("btn-map") as HTMLButtonElement | null;
+
+    btnMap?.addEventListener("click", () => {
+      this.sound.playClickSound();
+      this.isMapMode = !this.isMapMode;
+      if (this.isMapMode) {
+        this.camera.instance.position.set(0, 80, 0.1);
+        this.camera.controls.target.set(0, 0, 0);
+        btnMap.textContent = "🪐 وضع الاستكشاف";
+      } else {
+        this.camera.resetFocus();
+        btnMap.textContent = "🗺️ وضع الخريطة";
+      }
+    });
 
     btnSound?.addEventListener("click", () => {
       this.sound.init();
@@ -265,6 +295,7 @@ export class App {
 
     if (!data || !targetObj) return;
 
+    this.discoveries.discover(id);
     this.camera.focusOn(targetObj, data.radius);
 
     const title = document.getElementById("info-title");

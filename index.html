@@ -8,6 +8,13 @@
     <title>Interactive Space Explorer - مستكشف الفضاء التفاعلي</title>
   </head>
   <body>
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="loading-screen">
+      <div class="spinner"></div>
+      <h2>🌌 جاري تجهيز واستكشاف الفضاء...</h2>
+      <p id="loading-status">تحميل النظام الشمسي والأجرام الفضائية...</p>
+    </div>
+
     <div id="app"></div>
 
     <!-- UI Overlay Header & Controls -->
@@ -30,6 +37,10 @@
           <option value="uranus">♅ أورانوس (Uranus)</option>
           <option value="neptune">♆ نبتون (Neptune)</option>
           <option value="moon">🌕 القمر (The Moon)</option>
+          <option value="io">🌕 إيو (Io)</option>
+          <option value="europa">🧊 أوروبا (Europa)</option>
+          <option value="titan">🪐 تيتان (Titan)</option>
+          <option value="halley">☄️ مذنب هالي (Halley)</option>
           <option value="iss">🛰️ محطة الفضاء الدولية (ISS)</option>
           <option value="blackhole">🕳️ الثقب الأسود (Black Hole)</option>
         </select>
@@ -40,12 +51,18 @@
           <option value="2">⚡ 2x</option>
           <option value="5">⚡ 5x</option>
         </select>
+        <button id="btn-map" title="وضع الخريطة">🗺️ وضع الخريطة</button>
         <button id="btn-sound" title="الصوت">🔊 الصوت</button>
         <button id="btn-quiz" title="اختبار الفضاء">🎯 مسابقة الفضاء</button>
         <button id="btn-pause" title="إيقاف / استئناف الحركة">⏸️ إيقاف مؤقت</button>
         <button id="btn-reset" title="إعادة ضبط الكاميرا">🎥 إعادة الكاميرا</button>
       </div>
     </header>
+
+    <!-- Discoveries Badge Counter -->
+    <div id="discovery-badge" class="discovery-badge">
+      🔍 الأجرام المُكتشفة: <strong id="discovery-count">0</strong>
+    </div>
 
     <!-- Info Panel Sidebar -->
     <aside id="info-panel" class="info-panel hidden">
