@@ -5,59 +5,30 @@ import { Renderer } from "./core/Renderer";
 import { Scene } from "./core/Scene";
 import { Raycaster } from "./interaction/Raycaster";
 import { Selection } from "./interaction/Selection";
+import { findCelestial, formatType, searchCelestial, timeScales, type TimeScale } from "./data/types";
 import { SolarSystem } from "./simulation/SolarSystem";
 
 export class App {
-  private readonly scene = new Scene();
-  private readonly renderer: Renderer;
-  private readonly camera: Camera;
-  private readonly clock = new Clock();
-  private readonly solarSystem: SolarSystem;
-  private readonly selection = new Selection();
-  private readonly raycaster: Raycaster;
-
+  private readonly scene = new Scene(); private readonly renderer: Renderer; private readonly camera: Camera; private readonly clock = new Clock(); private readonly solarSystem: SolarSystem; private readonly selection = new Selection(); private readonly raycaster: Raycaster; private readonly info = document.createElement("aside"); private readonly hoverLabel = document.createElement("div"); private readonly searchInput = document.createElement("input"); private timeScale: TimeScale = 0.1; private animationId = 0;
   constructor(container: HTMLElement) {
-    this.renderer = new Renderer(container);
-    this.camera = new Camera(this.renderer.instance);
-    this.solarSystem = new SolarSystem(this.scene.instance);
-
-    this.raycaster = new Raycaster(
-      this.camera,
-      this.selection,
-      this.renderer.instance.domElement,
-    );
-
-    this.raycaster.setTargets(this.solarSystem.getPickableObjects());
-
-    window.addEventListener("resize", this.onResize);
+    this.renderer = new Renderer(container); this.camera = new Camera(this.renderer.instance); this.solarSystem = new SolarSystem(this.scene.instance); this.raycaster = new Raycaster(this.camera, this.selection, this.renderer.instance.domElement); this.raycaster.setTargets(this.solarSystem.getPickableObjects()); this.buildHud(container); window.addEventListener("resize", this.onResize); window.addEventListener("keydown", this.onKeyDown);
   }
-
-  start(): void {
-    requestAnimationFrame(this.animate);
+  start(): void { requestAnimationFrame(this.animate); }
+  dispose(): void { cancelAnimationFrame(this.animationId); window.removeEventListener("resize", this.onResize); window.removeEventListener("keydown", this.onKeyDown); this.raycaster.dispose(); this.solarSystem.dispose(); this.renderer.dispose(); }
+  private buildHud(container: HTMLElement): void {
+    const hud = document.createElement("div"); hud.className = "hud";
+    const intro = document.createElement("div"); intro.className = "intro"; intro.innerHTML = '<span class="eyebrow">INTERACTIVE SPACE EXPLORER</span><h1>Explore the<br><em>solar system.</em></h1><p>Drag to orbit · scroll to travel<br>Select a world to focus</p>'; hud.appendChild(intro);
+    const top = document.createElement("div"); top.className = "topbar"; top.innerHTML = '<span class="status-dot"></span><span>LIVE SIMULATION</span><span class="divider"></span><span>EXPLORATION SCALE</span>'; hud.appendChild(top);
+    const nav = document.createElement("div"); nav.className = "nav"; nav.innerHTML = '<span class="nav-active">EXPLORE</span><span>MAP</span><span>DATA</span>'; hud.appendChild(nav);
+    const controls = document.createElement("div"); controls.className = "controls"; controls.innerHTML = '<span class="control-label">SIMULATION SPEED</span>'; const speed = document.createElement("div"); speed.className = "speed-row"; timeScales.forEach((scale) => { const button = document.createElement("button"); button.textContent = `${scale}×`; button.className = scale === this.timeScale ? "speed-active" : ""; button.addEventListener("click", () => { this.timeScale = scale; controls.querySelectorAll("button").forEach((item) => item.classList.remove("speed-active")); button.classList.add("speed-active"); }); speed.appendChild(button); }); controls.appendChild(speed); hud.appendChild(controls);
+    const search = document.createElement("div"); search.className = "search-wrap"; this.searchInput.placeholder = "Search celestial objects"; this.searchInput.setAttribute("aria-label", "Search celestial objects"); this.searchInput.addEventListener("input", () => this.renderSearch(search)); search.appendChild(this.searchInput); hud.appendChild(search);
+    this.info.className = "info-panel"; this.info.setAttribute("aria-live", "polite"); hud.appendChild(this.info); this.hoverLabel.className = "hover-label"; hud.appendChild(this.hoverLabel); container.appendChild(hud);
+    const back = document.createElement("button"); back.className = "back-button"; back.textContent = "←  BACK TO SYSTEM"; back.addEventListener("click", () => { this.selection.select(null); this.camera.reset(); this.renderInfo(); }); hud.appendChild(back);
   }
-
-  dispose(): void {
-    window.removeEventListener("resize", this.onResize);
-    this.raycaster.dispose();
-    this.renderer.dispose();
-  }
-
-  private animate = (): void => {
-    const delta = this.clock.getDelta();
-    const elapsed = this.clock.getElapsedTime();
-
-    this.solarSystem.update(elapsed, delta);
-    this.camera.update();
-    this.renderer.render(this.scene.instance, this.camera.instance);
-
-    requestAnimationFrame(this.animate);
-  };
-
-  private onResize = (): void => {
-    const width = window.innerWidth;
-    const height = window.innerHeight;
-
-    this.renderer.resize(width, height);
-    this.camera.resize(width, height);
-  };
+  private renderSearch(search: HTMLElement): void { const results = search.querySelector(".results"); results?.remove(); const query = this.searchInput.value.trim(); if (!query) return; const resultBox = document.createElement("div"); resultBox.className = "results"; searchCelestial(query).slice(0, 6).forEach((item) => { const button = document.createElement("button"); button.innerHTML = `<strong>${item.name}</strong><small>${formatType(item.type)}</small>`; button.addEventListener("click", () => { this.select(item.id); this.searchInput.value = ""; resultBox.remove(); }); resultBox.appendChild(button); }); search.appendChild(resultBox); }
+  private select(id: string): void { const body = this.solarSystem.getById(id); if (!body) return; this.selection.select(id); this.camera.focus(body.object.getWorldPosition(new THREE.Vector3()), body.data.visual.radius); this.renderInfo(); }
+  private renderInfo(): void { const item = this.selection.selected ? findCelestial(this.selection.selected) : undefined; if (!item) { this.info.classList.remove("is-visible"); return; } const d = item.scientific; this.info.innerHTML = `<button class="close" aria-label="Close information panel">×</button><span class="eyebrow">${formatType(item.type).toUpperCase()}</span><h2>${item.name.toUpperCase()}</h2><dl><div><dt>DIAMETER</dt><dd>${d.diameter}</dd></div><div><dt>MASS</dt><dd>${d.mass}</dd></div><div><dt>GRAVITY</dt><dd>${d.gravity}</dd></div><div><dt>TEMPERATURE</dt><dd>${d.temperature}</dd></div><div><dt>DAY / YEAR</dt><dd>${d.day} · ${d.year}</dd></div><div><dt>DISTANCE</dt><dd>${d.distance}</dd></div></dl><div class="fact"><span>DID YOU KNOW?</span><p>${d.fact}</p></div><small class="source">Source · ${d.source}</small>`; this.info.classList.add("is-visible"); this.info.querySelector(".close")?.addEventListener("click", () => { this.selection.select(null); this.renderInfo(); }); }
+  private animate = (): void => { const delta = this.clock.getDelta(); const elapsed = this.clock.getElapsedTime(); this.solarSystem.update(elapsed, delta, this.timeScale); this.camera.update(); this.renderer.render(this.scene.instance, this.camera.instance); const hovered = this.selection.hovered ? findCelestial(this.selection.hovered) : undefined; this.hoverLabel.textContent = hovered?.name.toUpperCase() ?? ""; this.hoverLabel.classList.toggle("is-visible", Boolean(hovered)); this.animationId = requestAnimationFrame(this.animate); };
+  private onResize = (): void => { this.renderer.resize(window.innerWidth, window.innerHeight); this.camera.resize(window.innerWidth, window.innerHeight); };
+  private onKeyDown = (event: KeyboardEvent): void => { if (event.key === "Escape") { this.selection.select(null); this.renderInfo(); } if (event.key === "/") { event.preventDefault(); this.searchInput.focus(); } };
 }
