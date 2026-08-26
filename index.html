@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#02030a" />
+    <title>Space Explorer</title>
+  </head>
+  <body>
+    <div id="app"></div>
+
+    <!-- UI Overlay Header & Controls -->
+    <header class="ui-header">
+      <div class="brand">
+        <h1>🚀 مستكشف الفضاء التفاعلي</h1>
+        <p>Interactive Space Explorer</p>
+      </div>
+
+      <div class="controls-bar">
+        <select id="celestial-select" aria-label="اختر جرماً سماوياً">
+          <option value="">-- اختر جرماً سماوياً --</option>
+          <option value="sun">☀️ الشمس (Sun)</option>
+          <option value="mercury">☿ عطارد (Mercury)</option>
+          <option value="venus">♀ الزهرة (Venus)</option>
+          <option value="earth">🜨 الأرض (Earth)</option>
+          <option value="mars">♂ المريخ (Mars)</option>
+          <option value="jupiter">♃ المشتري (Jupiter)</option>
+          <option value="saturn">♄ زحل (Saturn)</option>
+          <option value="uranus">♅ أورانوس (Uranus)</option>
+          <option value="neptune">♆ نبتون (Neptune)</option>
+        </select>
+
+        <button id="btn-pause" title="إيقاف / استئناف الحركة">⏸️ إيقاف مؤقت</button>
+        <button id="btn-reset" title="إعادة ضبط الكاميرا">🎥 إعادة الكاميرا</button>
+      </div>
+    </header>
+
+    <!-- Info Panel Sidebar -->
+    <aside id="info-panel" class="info-panel hidden">
+      <button id="close-panel" title="إغلاق Panel">&times;</button>
+      <div class="panel-content">
+        <h2 id="info-title">اسم الجرم</h2>
+        <span id="info-type" class="badge">نوع الجرم</span>
+        <p id="info-desc" class="description"></p>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <span class="stat-label">المسافة عن الشمس</span>
+            <span id="info-distance" class="stat-value">-</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">الكتلة</span>
+            <span id="info-mass" class="stat-value">-</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">التكوين الأساسي</span>
+            <span id="info-composition" class="stat-value">-</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">عدد الأقمار</span>
+            <span id="info-moons" class="stat-value">-</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Instructions / Footer -->
+    <footer class="ui-footer">
+      <p>💡 انقر على أي جرم سماوي للتركيز عليه واستكشاف تفاصيله | اسحب بالماوس للتدوير والدوران حول الفضاء</p>
+    </footer>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
