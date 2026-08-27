@@ -79,6 +79,8 @@ export class App {
       this.scene.meteors.update(delta);
       this.scene.blackHole.update(delta);
       this.scene.comet.update(this.customElapsed);
+      this.scene.galaxy1.update(delta);
+      this.scene.galaxy2.update(delta);
     }
     this.camera.update();
     this.renderer.render(this.scene.instance, this.camera.instance);
