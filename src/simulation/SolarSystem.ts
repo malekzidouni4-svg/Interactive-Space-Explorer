@@ -5,7 +5,13 @@ import { extraObjects, planets, sun } from "../data/solarSystem";
 export class SolarSystem {
   readonly bodies: CelestialBody[];
   private asteroidBelt: THREE.InstancedMesh | null = null;
-  private extraBodies: { data: typeof extraObjects[number]; mesh: THREE.Mesh; parentBody?: CelestialBody }[] = [];
+  private kuiperBelt: THREE.InstancedMesh | null = null;
+  private extraBodies: {
+    data: typeof extraObjects[number];
+    mesh: THREE.Mesh;
+    parentBody?: CelestialBody;
+    orbitLine?: THREE.LineLoop;
+  }[] = [];
 
   constructor(scene: THREE.Scene) {
     this.bodies = [sun, ...planets].map((data) => new CelestialBody(data));
@@ -17,6 +23,7 @@ export class SolarSystem {
     }
 
     this.createAsteroidBelt(scene);
+    this.createKuiperBelt(scene);
 
     const light = new THREE.PointLight(0xffd7aa, 500, 0, 2);
     light.position.set(0, 0, 0);
@@ -24,7 +31,7 @@ export class SolarSystem {
   }
 
   private createAsteroidBelt(scene: THREE.Scene): void {
-    const count = 800;
+    const count = 900;
     const geometry = new THREE.DodecahedronGeometry(0.08, 1);
     const material = new THREE.MeshStandardMaterial({ color: 0x887766, roughness: 0.9 });
     this.asteroidBelt = new THREE.InstancedMesh(geometry, material, count);
@@ -57,6 +64,46 @@ export class SolarSystem {
     scene.add(this.asteroidBelt);
   }
 
+  private createKuiperBelt(scene: THREE.Scene): void {
+    const count = 1200;
+    const geometry = new THREE.IcosahedronGeometry(0.12, 1);
+    const material = new THREE.MeshStandardMaterial({
+      color: 0x93c5fd,
+      roughness: 0.5,
+      metalness: 0.2,
+      emissive: 0x1e3a8a,
+      emissiveIntensity: 0.2,
+    });
+    this.kuiperBelt = new THREE.InstancedMesh(geometry, material, count);
+
+    const matrix = new THREE.Matrix4();
+    const position = new THREE.Vector3();
+    const rotation = new THREE.Euler();
+    const quaternion = new THREE.Quaternion();
+    const scale = new THREE.Vector3();
+
+    const minRadius = 52;
+    const maxRadius = 70;
+
+    for (let i = 0; i < count; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const radius = minRadius + Math.random() * (maxRadius - minRadius);
+      const y = (Math.random() - 0.5) * 3.0;
+
+      position.set(Math.cos(angle) * radius, y, Math.sin(angle) * radius);
+      rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
+      quaternion.setFromEuler(rotation);
+      const s = 0.6 + Math.random() * 1.5;
+      scale.set(s, s, s);
+
+      matrix.compose(position, quaternion, scale);
+      this.kuiperBelt.setMatrixAt(i, matrix);
+    }
+
+    this.kuiperBelt.instanceMatrix.needsUpdate = true;
+    scene.add(this.kuiperBelt);
+  }
+
   private createExtraObjects(scene: THREE.Scene): void {
     for (const data of extraObjects) {
       if (data.type === "blackhole") continue;
@@ -74,7 +121,26 @@ export class SolarSystem {
       scene.add(mesh);
 
       const parentBody = data.parentBodyId ? this.getById(data.parentBodyId) : undefined;
-      this.extraBodies.push({ data, mesh, parentBody });
+      let orbitLine: THREE.LineLoop | undefined;
+
+      if (data.orbitRadius > 0 && parentBody) {
+        const points: THREE.Vector3[] = [];
+        const segments = 64;
+        for (let i = 0; i < segments; i++) {
+          const a = (i / segments) * Math.PI * 2;
+          points.push(new THREE.Vector3(Math.cos(a) * data.orbitRadius, 0, Math.sin(a) * data.orbitRadius));
+        }
+        const orbitGeo = new THREE.BufferGeometry().setFromPoints(points);
+        const orbitMat = new THREE.LineBasicMaterial({
+          color: 0x38bdf8,
+          transparent: true,
+          opacity: 0.25,
+        });
+        orbitLine = new THREE.LineLoop(orbitGeo, orbitMat);
+        scene.add(orbitLine);
+      }
+
+      this.extraBodies.push({ data, mesh, parentBody, orbitLine });
     }
   }
 
@@ -92,11 +158,25 @@ export class SolarSystem {
           parentPos.y,
           parentPos.z + Math.sin(angle) * item.data.orbitRadius
         );
+
+        if (item.orbitLine) {
+          item.orbitLine.position.copy(parentPos);
+        }
+      } else if (item.data.id === "voyager1") {
+        const angle = elapsed * 0.05;
+        item.mesh.position.set(
+          Math.cos(angle) * item.data.orbitRadius,
+          15 + Math.sin(angle * 0.5) * 5,
+          Math.sin(angle) * item.data.orbitRadius
+        );
       }
     }
 
     if (this.asteroidBelt) {
       this.asteroidBelt.rotation.y += delta * 0.05;
+    }
+    if (this.kuiperBelt) {
+      this.kuiperBelt.rotation.y += delta * 0.02;
     }
   }
 
