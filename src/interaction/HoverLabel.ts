@@ -1,21 +1,36 @@
 export class HoverLabel {
-  private element: HTMLElement;
+  private element: HTMLElement | null = null;
+  private nameElem: HTMLElement | null = null;
+  private typeElem: HTMLElement | null = null;
 
   constructor() {
-    this.element = document.createElement("div");
-    this.element.id = "hover-label";
-    this.element.className = "hover-label hidden";
-    document.body.appendChild(this.element);
+    this.element = document.getElementById("hover-label");
+    this.nameElem = document.getElementById("hover-label-name");
+    this.typeElem = document.getElementById("hover-label-type");
   }
 
   show(name: string, type: string, x: number, y: number): void {
-    this.element.innerHTML = `<span class="name">${name}</span> <span class="type">${type}</span>`;
-    this.element.style.left = `${x + 12}px`;
-    this.element.style.top = `${y + 12}px`;
+    if (!this.element) return;
+
+    if (this.nameElem) this.nameElem.textContent = name;
+    if (this.typeElem) {
+      const typeMap: Record<string, string> = {
+        star: "نجم",
+        planet: "كوكب",
+        moon: "قمر",
+        spacecraft: "مركبة",
+        blackhole: "ثقب أسود",
+        comet: "مذنب"
+      };
+      this.typeElem.textContent = typeMap[type] || type;
+    }
+
+    this.element.style.left = `${x}px`;
+    this.element.style.top = `${y}px`;
     this.element.classList.remove("hidden");
   }
 
   hide(): void {
-    this.element.classList.add("hidden");
+    this.element?.classList.add("hidden");
   }
 }

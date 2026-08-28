@@ -4,24 +4,26 @@ export class Meteors {
   private particles: THREE.Points;
   private positions: Float32Array;
   private velocities: Float32Array;
+  private delays: Float32Array;
+  private count = 10;
 
   constructor(scene: THREE.Scene) {
-    const count = 30;
-    this.positions = new Float32Array(count * 3);
-    this.velocities = new Float32Array(count * 3);
+    this.positions = new Float32Array(this.count * 3);
+    this.velocities = new Float32Array(this.count * 3);
+    this.delays = new Float32Array(this.count);
 
-    for (let i = 0; i < count; i++) {
-      this.resetMeteor(i);
+    for (let i = 0; i < this.count; i++) {
+      this.resetMeteor(i, true);
     }
 
     const geometry = new THREE.BufferGeometry();
     geometry.setAttribute("position", new THREE.BufferAttribute(this.positions, 3));
 
     const material = new THREE.PointsMaterial({
-      color: 0xffffff,
-      size: 1.2,
+      color: 0x93c5fd,
+      size: 1.5,
       transparent: true,
-      opacity: 0.8,
+      opacity: 0.85,
       blending: THREE.AdditiveBlending,
     });
 
@@ -29,34 +31,41 @@ export class Meteors {
     scene.add(this.particles);
   }
 
-  private resetMeteor(i: number): void {
+  private resetMeteor(i: number, initial = false): void {
     const index = i * 3;
-    const radius = 200 + Math.random() * 200;
+    this.delays[i] = initial ? Math.random() * 8 : 4 + Math.random() * 12;
+
+    const radius = 250 + Math.random() * 150;
     const theta = Math.random() * Math.PI * 2;
-    const phi = (Math.random() - 0.5) * Math.PI;
+    const phi = (Math.random() - 0.5) * Math.PI * 0.8;
 
     this.positions[index] = Math.cos(theta) * radius;
     this.positions[index + 1] = Math.sin(phi) * radius;
     this.positions[index + 2] = Math.sin(theta) * radius;
 
-    this.velocities[index] = -15 - Math.random() * 20;
-    this.velocities[index + 1] = -5 - Math.random() * 10;
-    this.velocities[index + 2] = -15 - Math.random() * 20;
+    const speed = 25 + Math.random() * 25;
+    const angle = Math.random() * Math.PI * 2;
+    this.velocities[index] = Math.cos(angle) * speed;
+    this.velocities[index + 1] = -10 - Math.random() * 15;
+    this.velocities[index + 2] = Math.sin(angle) * speed;
   }
 
   update(delta: number): void {
-    const count = this.positions.length / 3;
+    for (let i = 0; i < this.count; i++) {
+      if (this.delays[i] > 0) {
+        this.delays[i] -= delta;
+        continue;
+      }
 
-    for (let i = 0; i < count; i++) {
       const index = i * 3;
       this.positions[index] += this.velocities[index] * delta;
       this.positions[index + 1] += this.velocities[index + 1] * delta;
       this.positions[index + 2] += this.velocities[index + 2] * delta;
 
       if (
-        Math.abs(this.positions[index]) > 400 ||
-        Math.abs(this.positions[index + 1]) > 400 ||
-        Math.abs(this.positions[index + 2]) > 400
+        Math.abs(this.positions[index]) > 450 ||
+        Math.abs(this.positions[index + 1]) > 450 ||
+        Math.abs(this.positions[index + 2]) > 450
       ) {
         this.resetMeteor(i);
       }

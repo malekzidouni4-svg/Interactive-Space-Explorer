@@ -37,6 +37,7 @@ export class App {
       this.camera,
       this.selection,
       this.renderer.instance.domElement,
+      (id: string) => this.getCelestialHeaderInfo(id)
     );
 
     const targets = [
@@ -47,6 +48,7 @@ export class App {
     this.raycaster.setTargets(targets);
 
     this.setupUIListeners();
+    this.setupKeyboardListeners();
     this.selection.onSelectionChange((id) => this.onCelestialSelected(id));
 
     this.discoveries.onUpdate((count) => {
@@ -67,6 +69,7 @@ export class App {
 
   dispose(): void {
     window.removeEventListener("resize", this.onResize);
+    window.removeEventListener("keydown", this.onKeyDown);
     this.raycaster.dispose();
     this.renderer.dispose();
   }
@@ -88,16 +91,50 @@ export class App {
     requestAnimationFrame(this.animate);
   };
 
+  private getCelestialHeaderInfo(id: string): { name: string; type: string } | null {
+    if (id === "blackhole") {
+      return { name: "الثقب الأسود (Black Hole)", type: "blackhole" };
+    }
+    const body = this.solarSystem.getById(id);
+    if (body) {
+      return { name: body.data.name, type: body.data.type };
+    }
+    const extraData = this.solarSystem.getExtraDataById(id);
+    if (extraData) {
+      return { name: extraData.name, type: extraData.type };
+    }
+    return null;
+  }
+
+  private setupKeyboardListeners(): void {
+    window.addEventListener("keydown", this.onKeyDown);
+  }
+
+  private onKeyDown = (e: KeyboardEvent): void => {
+    if (e.key === "Escape") {
+      this.deselectAndReturnToSystem();
+    }
+  };
+
+  private deselectAndReturnToSystem(): void {
+    this.selection.select(null);
+  }
+
   private setupUIListeners(): void {
-    const selectElem = document.getElementById("celestial-select") as HTMLSelectElement | null;
     const speedSelect = document.getElementById("speed-select") as HTMLSelectElement | null;
     const btnPause = document.getElementById("btn-pause") as HTMLButtonElement | null;
     const btnReset = document.getElementById("btn-reset") as HTMLButtonElement | null;
+    const btnBackSystem = document.getElementById("btn-back-system") as HTMLButtonElement | null;
     const btnClose = document.getElementById("close-panel") as HTMLButtonElement | null;
     const btnExplore = document.getElementById("btn-explore-details") as HTMLButtonElement | null;
     const btnSound = document.getElementById("btn-sound") as HTMLButtonElement | null;
     const btnQuiz = document.getElementById("btn-quiz") as HTMLButtonElement | null;
     const btnMap = document.getElementById("btn-map") as HTMLButtonElement | null;
+
+    btnBackSystem?.addEventListener("click", () => {
+      this.sound.playClickSound();
+      this.deselectAndReturnToSystem();
+    });
 
     btnMap?.addEventListener("click", () => {
       this.sound.playClickSound();
@@ -107,7 +144,7 @@ export class App {
         this.camera.controls.target.set(0, 0, 0);
         btnMap.textContent = "🪐 وضع الاستكشاف";
       } else {
-        this.camera.resetFocus();
+        this.camera.returnToSystem();
         btnMap.textContent = "🗺️ وضع الخريطة";
       }
     });
@@ -135,27 +172,17 @@ export class App {
       this.timeSpeed = parseFloat((e.target as HTMLSelectElement).value) || 1.0;
     });
 
-    selectElem?.addEventListener("change", (e) => {
-      const val = (e.target as HTMLSelectElement).value;
-      if (val) {
-        this.selection.select(val);
-      } else {
-        this.selection.select(null);
-      }
-    });
-
     btnPause?.addEventListener("click", () => {
       this.isPaused = !this.isPaused;
       btnPause.textContent = this.isPaused ? "▶️ تشغيل" : "⏸️ إيقاف مؤقت";
     });
 
     btnReset?.addEventListener("click", () => {
-      this.selection.select(null);
-      this.camera.resetFocus();
+      this.deselectAndReturnToSystem();
     });
 
     btnClose?.addEventListener("click", () => {
-      this.selection.select(null);
+      this.deselectAndReturnToSystem();
     });
   }
 
@@ -252,19 +279,18 @@ export class App {
 
   private onCelestialSelected(id: string | null): void {
     const panel = document.getElementById("info-panel");
-    const selectElem = document.getElementById("celestial-select") as HTMLSelectElement | null;
+    const btnBackSystem = document.getElementById("btn-back-system");
     const detailedText = document.getElementById("detailed-info-text");
     if (detailedText) detailedText.classList.add("hidden");
 
-    if (selectElem) {
-      selectElem.value = id || "";
-    }
-
     if (!id) {
       panel?.classList.add("hidden");
-      this.camera.resetFocus();
+      btnBackSystem?.classList.add("hidden");
+      this.camera.returnToSystem();
       return;
     }
+
+    btnBackSystem?.classList.remove("hidden");
 
     const celestial = this.solarSystem.getById(id);
     const extraData = this.solarSystem.getExtraDataById(id);
@@ -298,7 +324,7 @@ export class App {
     if (!data || !targetObj) return;
 
     this.discoveries.discover(id);
-    this.camera.focusOn(targetObj, data.radius);
+    this.camera.focusOn(targetObj, data.radius || 2);
 
     const title = document.getElementById("info-title");
     const type = document.getElementById("info-type");
@@ -318,8 +344,9 @@ export class App {
         star: "نجم",
         planet: "كوكب",
         moon: "قمر طبيعي",
-        spacecraft: "محطة فضائية",
-        blackhole: "ثقب أسود"
+        spacecraft: "مركبة فضائية",
+        blackhole: "ثقب أسود",
+        comet: "مذنب"
       };
       type.textContent = typeMap[data.type] || "جرم سماوي";
     }
