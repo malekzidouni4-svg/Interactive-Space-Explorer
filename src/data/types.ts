@@ -1,9 +1,11 @@
 export type RotationDirection = 1 | -1;
 
+export type CelestialObjectType = "star" | "planet" | "moon" | "spacecraft" | "blackhole";
+
 export interface CelestialData {
   id: string;
   name: string;
-  type: "star" | "planet";
+  type: CelestialObjectType;
   radius: number;
   orbitRadius: number;
   orbitalPeriod: number;
@@ -16,7 +18,13 @@ export interface CelestialData {
   description?: string;
   distanceFromSun?: string;
   mass?: string;
+  gravity?: string;
+  diameter?: string;
+  temperature?: string;
   composition?: string;
   moonsCount?: number;
   hasRings?: boolean;
+  parentBodyId?: string;
+  didYouKnow?: string;
+  detailedInfo?: string;
 }
