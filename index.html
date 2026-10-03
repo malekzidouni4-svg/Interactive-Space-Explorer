@@ -1,136 +1,26 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#02030a" />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' ws: wss:; object-src 'none'; base-uri 'self';" />
-    <title>Interactive Space Explorer - مستكشف الفضاء التفاعلي</title>
-  </head>
-  <body>
-    <!-- Loading Screen -->
-    <div id="loading-screen" class="loading-screen">
-      <div class="spinner"></div>
-      <h2>🌌 جاري تجهيز واستكشاف الفضاء...</h2>
-      <p id="loading-status">تحميل النظام الشمسي والأجرام الفضائية...</p>
-    </div>
-
-    <div id="app"></div>
-
-    <!-- UI Overlay Header & Controls -->
-    <header class="ui-header">
-      <div class="brand">
-        <h1>🚀 مستكشف الفضاء التفاعلي</h1>
-        <p>Interactive Space Explorer</p>
-      </div>
-
-      <div class="controls-bar">
-        <select id="celestial-select" aria-label="اختر جرماً سماوياً">
-          <option value="">-- اختر جرماً سماوياً --</option>
-          <option value="sun">☀️ الشمس (Sun)</option>
-          <option value="mercury">☿ عطارد (Mercury)</option>
-          <option value="venus">♀ الزهرة (Venus)</option>
-          <option value="earth">🜨 الأرض (Earth)</option>
-          <option value="mars">♂ المريخ (Mars)</option>
-          <option value="jupiter">♃ المشتري (Jupiter)</option>
-          <option value="saturn">♄ زحل (Saturn)</option>
-          <option value="uranus">♅ أورانوس (Uranus)</option>
-          <option value="neptune">♆ نبتون (Neptune)</option>
-          <option value="pluto">🪐 بلوتو (Pluto)</option>
-          <option value="moon">🌕 القمر (The Moon)</option>
-          <option value="phobos">🌑 فوبوس (Phobos)</option>
-          <option value="deimos">🌑 ديموس (Deimos)</option>
-          <option value="io">🌕 إيو (Io)</option>
-          <option value="europa">🧊 أوروبا (Europa)</option>
-          <option value="titan">🪐 تيتان (Titan)</option>
-          <option value="triton">❄️ تريتون (Triton)</option>
-          <option value="halley">☄️ مذنب هالي (Halley)</option>
-          <option value="iss">🛰️ محطة الفضاء الدولية (ISS)</option>
-          <option value="jwst">🔭 تلسكوب جيمس ويب (JWST)</option>
-          <option value="voyager1">📡 مسبار فويجر 1 (Voyager 1)</option>
-          <option value="blackhole">🕳️ الثقب الأسود (Black Hole)</option>
-        </select>
-
-        <select id="speed-select" aria-label="سرعة المحاكاة" title="سرعة المحاكاة">
-          <option value="0.5">⚡ 0.5x</option>
-          <option value="1" selected>⚡ 1x</option>
-          <option value="2">⚡ 2x</option>
-          <option value="5">⚡ 5x</option>
-        </select>
-        <button id="btn-map" title="وضع الخريطة">🗺️ وضع الخريطة</button>
-        <button id="btn-sound" title="الصوت">🔊 الصوت</button>
-        <button id="btn-quiz" title="اختبار الفضاء">🎯 مسابقة الفضاء</button>
-        <button id="btn-pause" title="إيقاف / استئناف الحركة">⏸️ إيقاف مؤقت</button>
-        <button id="btn-reset" title="إعادة ضبط الكاميرا">🎥 إعادة الكاميرا</button>
-      </div>
-    </header>
-
-    <!-- Discoveries Badge Counter -->
-    <div id="discovery-badge" class="discovery-badge">
-      🔍 الأجرام المُكتشفة: <strong id="discovery-count">0</strong>
-    </div>
-
-    <!-- Info Panel Sidebar -->
-    <aside id="info-panel" class="info-panel hidden">
-      <button id="close-panel" title="إغلاق Panel">&times;</button>
-      <div class="panel-content">
-        <h2 id="info-title">اسم الجرم</h2>
-        <span id="info-type" class="badge">نوع الجرم</span>
-        <p id="info-desc" class="description"></p>
-
-        <!-- Did you know & Educational details -->
-        <div id="did-you-know-box" class="did-you-know hidden">
-          💡 <strong>هل تعلم؟</strong> <span id="did-you-know-text"></span>
-        </div>
-
-        <button id="btn-explore-details" class="btn-explore">🔍 استكشف التفاصيل الكاملة</button>
-        <p id="detailed-info-text" class="detailed-info hidden"></p>
-
-        <div class="stats-grid">
-          <div class="stat-card">
-            <span class="stat-label">المسافة عن الشمس</span>
-            <span id="info-distance" class="stat-value">-</span>
-          </div>
-          <div class="stat-card">
-            <span class="stat-label">الكتلة</span>
-            <span id="info-mass" class="stat-value">-</span>
-          </div>
-          <div class="stat-card">
-            <span class="stat-label">التكوين الأساسي</span>
-            <span id="info-composition" class="stat-value">-</span>
-          </div>
-          <div class="stat-card">
-            <span class="stat-label">عدد الأقمار</span>
-            <span id="info-moons" class="stat-value">-</span>
-          </div>
-        </div>
-      </div>
-    </aside>
-
-    <!-- Quiz Modal -->
-    <div id="quiz-modal" class="quiz-modal hidden">
-      <div class="quiz-container">
-        <button id="close-quiz" class="close-quiz">&times;</button>
-        <h2>🎯 مسابقة الفضاء الشيقة</h2>
-        <div id="quiz-question-box">
-          <p id="quiz-question-text" class="quiz-question"></p>
-          <div id="quiz-options" class="quiz-options"></div>
-          <p id="quiz-feedback" class="quiz-feedback hidden"></p>
-          <button id="btn-next-question" class="btn-explore hidden">السؤال التالي ➡️</button>
-        </div>
-        <div id="quiz-result-box" class="quiz-result hidden">
-          <h3>🎉 تهانينا! أكملت التحدي!</h3>
-          <p id="quiz-final-score"></p>
-          <button id="btn-restart-quiz" class="btn-explore">إعادة التحدي 🔄</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Instructions / Footer -->
-    <footer class="ui-footer">
-      <p>💡 انقر على أي جرم سماوي للتركيز عليه واستكشاف تفاصيله | اسحب بالماوس للتدوير والدوران حول الفضاء</p>
-    </footer>
-
-    <script type="module" src="/src/main.ts"></script>
-  </body>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#030711" />
+  <meta name="description" content="An interactive scientific space exploration experience." />
+  <title>Interactive Space Explorer</title>
+</head>
+<body>
+  <div id="loading-screen" class="loading-screen"><div class="loader-orbit"><span></span></div><p class="eyebrow">DEEP SPACE SYSTEMS</p><h1>INITIALIZING<br><em>SPACE EXPLORER</em></h1><p id="loading-status">Loading stellar cartography...</p></div>
+  <main id="app" aria-label="Interactive 3D space explorer"></main>
+  <header class="topbar">
+    <div class="brand"><span class="brand-mark">◎</span><div><strong>SPACE EXPLORER</strong><small>SCIENTIFIC VISUALIZATION / 01</small></div></div>
+    <div class="top-actions"><button id="btn-map" class="glass-button">MAP VIEW</button><button id="btn-sound" class="glass-button">AUDIO ON</button><button id="btn-pause" class="glass-button">PAUSE</button><button id="btn-reset" class="glass-button">RESET VIEW</button></div>
+  </header>
+  <section class="mission-copy"><p class="eyebrow">LIVE MISSION / SOLAR SYSTEM</p><h2>Navigate the<br><em>unknown.</em></h2><p>Move freely through a visual simulation of our cosmic neighborhood.</p></section>
+  <section class="search-panel glass-panel"><label for="celestial-search">SEARCH CELESTIAL OBJECTS</label><div class="search-row"><input id="celestial-search" type="search" placeholder="Earth, Mars, Europa..." autocomplete="off" /><select id="celestial-select" aria-label="Select celestial object"><option value="">Select target</option><option value="sun">Sun</option><option value="mercury">Mercury</option><option value="venus">Venus</option><option value="earth">Earth</option><option value="mars">Mars</option><option value="jupiter">Jupiter</option><option value="saturn">Saturn</option><option value="uranus">Uranus</option><option value="neptune">Neptune</option><option value="moon">Moon</option><option value="europa">Europa</option><option value="titan">Titan</option><option value="iss">ISS</option><option value="blackhole">Black Hole</option></select></div><p class="search-hint">Click any object in the scene to acquire a target.</p></section>
+  <aside id="info-panel" class="info-panel glass-panel hidden"><button id="close-panel" class="icon-button" aria-label="Close information panel">×</button><p class="eyebrow">TARGET ACQUIRED</p><h2 id="info-title">Object</h2><span id="info-type" class="object-type">CELESTIAL OBJECT</span><p id="info-desc" class="description"></p><div class="info-actions"><button id="btn-explore-details" class="primary-button">ORBIT TARGET</button><button id="btn-reset-target" class="secondary-button">RELEASE</button></div><p id="detailed-info-text" class="detailed-info hidden"></p><div class="stats-grid"><div><span>Distance from Sun</span><strong id="info-distance">—</strong></div><div><span>Mass</span><strong id="info-mass">—</strong></div><div><span>Composition</span><strong id="info-composition">—</strong></div><div><span>Moons</span><strong id="info-moons">—</strong></div></div><div id="did-you-know-box" class="did-you-know hidden"><span>FIELD NOTE</span><p id="did-you-know-text"></p></div></aside>
+  <div class="hud"><div class="hud-card"><span>SIMULATION SPEED</span><strong id="hud-speed">0 u/s</strong><small id="hud-mode">CRUISE</small></div><div class="hud-card"><span>TIME SCALE</span><select id="speed-select" aria-label="Simulation time scale"><option value="1">1× REALTIME</option><option value="10">10× FAST</option><option value="100">100× FAST</option><option value="1000">1000× FAST</option></select></div><div class="hud-card coordinates"><span>FLIGHT VECTOR</span><strong>FREE FLIGHT</strong><small>W A S D / SPACE / CTRL</small></div></div>
+  <div class="discovery-badge"><span>DISCOVERIES</span><strong id="discovery-count">0</strong></div>
+  <div class="controls-hint glass-panel"><strong>FLIGHT CONTROLS</strong><span><kbd>W A S D</kbd> MOVE</span><span><kbd>SPACE</kbd> ASCEND</span><span><kbd>SHIFT</kbd> BOOST</span><span><kbd>CLICK</kbd> LOOK</span></div>
+  <footer class="footer-note"><span>VISUAL SCALE IS ARTISTIC · ORBITAL MOTION IS SIMPLIFIED</span><span>ESC TO EXIT CINEMATIC TRAVEL</span></footer>
+  <script type="module" src="/src/main.ts"></script>
+</body>
 </html>

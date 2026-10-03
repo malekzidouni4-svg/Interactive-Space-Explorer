@@ -10,6 +10,7 @@ import { SoundSystem } from "./core/Sound";
 import { QuizSystem } from "./ui/Quiz";
 import { Discoveries } from "./ui/Discoveries";
 import { LoadingScreen } from "./ui/LoadingScreen";
+import { FreeFlightController } from "./navigation/FreeFlightController";
 
 export class App {
   private readonly scene = new Scene();
@@ -23,6 +24,7 @@ export class App {
   private readonly quiz = new QuizSystem();
   private readonly discoveries = new Discoveries();
   private readonly loadingScreen = new LoadingScreen();
+  private readonly flight: FreeFlightController;
   private isPaused = false;
   private isMapMode = false;
   private timeSpeed = 1.0;
@@ -32,6 +34,8 @@ export class App {
     this.renderer = new Renderer(container);
     this.camera = new Camera(this.renderer.instance);
     this.solarSystem = new SolarSystem(this.scene.instance);
+    this.flight = new FreeFlightController(this.renderer.instance.domElement);
+    this.scene.instance.add(this.flight.ship);
 
     this.raycaster = new Raycaster(
       this.camera,
@@ -68,6 +72,7 @@ export class App {
   dispose(): void {
     window.removeEventListener("resize", this.onResize);
     this.raycaster.dispose();
+    this.flight.dispose();
     this.renderer.dispose();
   }
 
@@ -76,6 +81,11 @@ export class App {
     if (!this.isPaused) {
       this.customElapsed += delta;
       this.solarSystem.update(this.customElapsed, delta);
+      this.flight.update(delta);
+      const speed = document.getElementById("hud-speed");
+      if (speed) speed.textContent = `${(this.flight.speed * 1000).toFixed(0)} u/s`;
+      const mode = document.getElementById("hud-mode");
+      if (mode) mode.textContent = this.flight.isBoosting ? "BOOST" : "CRUISE";
       this.scene.meteors.update(delta);
       this.scene.blackHole.update(delta);
       this.scene.comet.update(this.customElapsed);
