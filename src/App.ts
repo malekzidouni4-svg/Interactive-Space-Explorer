@@ -99,7 +99,6 @@ export class App {
   };
 
   private setupUIListeners(): void {
-    const selectElem = document.getElementById("celestial-select") as HTMLSelectElement | null;
     const speedSelect = document.getElementById("speed-select") as HTMLSelectElement | null;
     const btnPause = document.getElementById("btn-pause") as HTMLButtonElement | null;
     const btnReset = document.getElementById("btn-reset") as HTMLButtonElement | null;
@@ -143,15 +142,6 @@ export class App {
     speedSelect?.addEventListener("change", (e) => {
       this.sound.playClickSound();
       this.timeSpeed = parseFloat((e.target as HTMLSelectElement).value) || 1.0;
-    });
-
-    selectElem?.addEventListener("change", (e) => {
-      const val = (e.target as HTMLSelectElement).value;
-      if (val) {
-        this.selection.select(val);
-      } else {
-        this.selection.select(null);
-      }
     });
 
     btnPause?.addEventListener("click", () => {
