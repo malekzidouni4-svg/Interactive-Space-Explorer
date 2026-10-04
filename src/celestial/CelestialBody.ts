@@ -38,11 +38,14 @@ export class CelestialBody {
   }
 
   private createObject(): THREE.Mesh {
-    const geometry = new THREE.SphereGeometry(this.data.radius, 48, 32);
+    const geometry = new THREE.SphereGeometry(this.data.radius, 64, 40);
+    this.addTerrainRelief(geometry);
+
     const material = new THREE.MeshStandardMaterial({
       color: this.data.color,
-      roughness: 0.75,
+      roughness: this.isRockyBody() ? 0.92 : 0.75,
       metalness: 0,
+      flatShading: false,
       emissive: this.data.emissive ?? 0x000000,
       emissiveIntensity: this.data.emissiveIntensity ?? 0,
     });
@@ -52,6 +55,32 @@ export class CelestialBody {
     object.userData.celestialId = this.data.id;
 
     return object;
+  }
+
+  private isRockyBody(): boolean {
+    return ["mercury", "venus", "earth", "mars", "moon", "phobos", "deimos"].includes(this.data.id);
+  }
+
+  private addTerrainRelief(geometry: THREE.SphereGeometry): void {
+    if (!this.isRockyBody()) return;
+
+    const position = geometry.attributes.position;
+    const vertex = new THREE.Vector3();
+    const normal = new THREE.Vector3();
+
+    for (let index = 0; index < position.count; index += 1) {
+      vertex.fromBufferAttribute(position, index).normalize();
+      normal.copy(vertex);
+      const broad = Math.sin(vertex.x * 7.4 + vertex.z * 4.1) * Math.cos(vertex.y * 8.2);
+      const ridges = Math.sin(vertex.x * 19.0 - vertex.z * 13.0 + vertex.y * 5.0);
+      const fine = Math.sin(vertex.x * 43.0 + vertex.y * 31.0 - vertex.z * 27.0);
+      const relief = (broad * 0.018 + ridges * 0.009 + fine * 0.003) * this.data.radius;
+      vertex.multiplyScalar(this.data.radius + relief);
+      position.setXYZ(index, vertex.x, vertex.y, vertex.z);
+    }
+
+    position.needsUpdate = true;
+    geometry.computeVertexNormals();
   }
 
   private createRings(): THREE.Mesh {
